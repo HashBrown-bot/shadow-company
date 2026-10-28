@@ -1,0 +1,95 @@
+# V2 附录 B 原样配置；隔离容器示例，尚未完成接入预检。
+schema_version: "0.2"
+environment:
+  id: refund_approval
+  version: "0.2.0"
+  business_timezone: Asia/Shanghai
+  currency: CNY
+  approval_threshold_minor: 200000
+  threshold_operator: gt
+  partial_refunds_allowed: true
+product:
+  id: refund_demo
+  version: fixed
+  adapter: http_refund_v1
+  base_url: http://refund-put:8001
+  responsibility: approval_and_execution
+  credentials:
+    support: secret://demo/support
+    approver: secret://demo/approver
+  actions:
+    request_refund:
+      method: POST
+      path: /refunds
+      semantic: create_application
+    approve_refund:
+      method: POST
+      path: /refunds/{refund_id}/approve
+      semantic: approve_snapshot
+    execute_refund:
+      method: POST
+      path: /refunds/{refund_id}/execute
+      semantic: request_execution
+    read_refund:
+      method: GET
+      path: /refunds/{refund_id}
+      semantic: observe_application
+  observations:
+    product_query: required
+    provider_ledger: required
+    webhook: required
+  reset:
+    strategy: run_namespace
+    endpoint: /test/reset
+    scope: run_id
+  clock_support: [realtime, event_compressed]
+provider:
+  adapter: payment_stub_v1
+  base_url: http://payment-provider:8002
+  ledger_path: /test/ledger
+  reset_path: /test/reset
+  idempotency_scope: tenant_and_idempotency_key
+runtime:
+  seed: 8427192
+  time_mode: event_compressed
+  max_events: 2000
+  max_wall_seconds: 300
+  max_concurrency: 4
+  max_action_retries: 2
+actors:
+  customer: {strategy: rule}
+  support: {strategy: rule}
+  approver: {strategy: rule}
+llm:
+  enabled: false
+  max_calls: 0
+  max_tokens: 0
+rules:
+  - id: REFUND_001
+    version: "1"
+    params: {max_success_per_command: 1}
+  - id: REFUND_002
+    version: "1"
+    params: {currency: CNY}
+  - id: APPROVAL_001
+    version: "1"
+    params: {threshold_minor: 200000, operator: gt}
+  - id: STATE_001
+    version: "1"
+  - id: TIME_001
+    version: "1"
+    params: {observation_wall_seconds: 30}
+faults:
+  - id: payment_commit_then_timeout
+    boundary: provider_response
+    match: {scenario_id: S12, attempt: 1}
+    behavior: commit_then_timeout
+suite: refund_core_20
+gate:
+  fail_on_severity: [critical, high]
+  required_checks: [REFUND_001, REFUND_002, APPROVAL_001]
+  inconclusive: block
+artifacts:
+  redact_secrets: true
+  trace_retention_days: 30
+  raw_retention_days: 7

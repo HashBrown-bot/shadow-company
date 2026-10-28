@@ -1,0 +1,19 @@
+"use client";
+import { useState } from "react";
+import { FindingDetail, Navigate, Observation, runPath, useResource } from "./api";
+import { attribution, Badge, Details, ErrorBox, Heading, Json, Loading, LocalPage, Pager, severity, Time } from "./ui";
+function Ledger({observation}:{observation:Observation}) {
+  const body=observation.payload.response?.body;
+  const entries=body&&typeof body==="object"&&"entries" in body&&Array.isArray(body.entries)?body.entries as Record<string,unknown>[]:[];
+  return <><p>来源：独立 provider 账本。条目为本轮实际响应，金额保持整数最小单位与原始币种。</p>{entries.length>0&&<div className="ledger-entries"><LocalPage name="支付条目" items={entries} size={5}>{(e)=><div className="ledger-entry" key={String(e.entry_id)}><strong>{String(e.amount_minor)} <span className="muted">{String(e.currency)} · 最小单位</span></strong><span>原始状态：{String(e.status)}</span><p>指令 <code>{String(e.refund_command_id)}</code></p><code>{String(e.entry_id)}</code></div>}</LocalPage></div>}<Details title="独立账本完整响应" value={body}/></>;
+}
+export function FindingPage({project,run,finding,navigate}:{project:string;run:string;finding:string;navigate:Navigate}) {
+ const [offset,setOffset]=useState(0);const data=useResource<FindingDetail>(runPath(project,run,`/findings/${finding}`,{limit:5,offset}));const d=data.data;
+ return <><Heading eyebrow="FINDING / 可追溯证据" title="发现详情"><button className="secondary" onClick={()=>navigate({project,run,view:"run"})}>← 返回运行</button></Heading>{data.loading?<Loading/>:data.error?<ErrorBox error={data.error} retry={data.refresh}/>:d&&<>
+   <section className="panel finding-hero"><div className="tags"><span className="tag">示例报告</span><span className={`severity ${d.finding.severity}`}>{severity[d.finding.severity]}</span><span>{attribution[d.finding.attribution]||d.finding.attribution}</span><span>{d.finding.confirmation==="confirmed"?"已由规则证实":d.finding.confirmation}</span></div><h2>{d.finding.reason}</h2><p>业务对象 <code>{d.finding.object_id}</code> · <strong>{d.finding.rule_id} · 契约规则 v{d.rule?.version||"未记录"} · Evaluator v{d.evaluation_rule_version||"未记录"}</strong></p><p>当前运行结论 <Badge value={d.run_verdict}/></p><small>规则发现不等同于人工确认的独立根因。</small></section>
+   {d.missing_evidence_refs.length>0&&<div className="notice warning" role="alert"><strong>? 引用证据缺失</strong><Json value={d.missing_evidence_refs}/></div>}
+   <div className="split"><section className="panel"><h2>预期结果</h2><Json value={d.finding.expected}/><Details title="注册规则与参数" value={d.rule}/></section><section className="panel"><h2>实际结果</h2><Json value={d.finding.actual}/><p>由产品观测和独立依赖证据推导。</p></section></div>
+   <section className="panel"><div className="section-head"><h2>独立支付证据与脱敏请求</h2><span>{d.evidence.total} 项关联观测</span></div>{d.evidence.items.map(o=><article key={o.observation_id} className="evidence-card"><div className="section-head"><h3>{o.source==="provider_ledger"?"独立支付账本":o.source==="put"?"产品请求与响应":o.source}</h3><span className={`lane ${o.evidence_kind==="dependency_evidence"?"provider":"product"}`}>{o.evidence_kind==="dependency_evidence"?"独立依赖":"产品观测"}</span></div><p><Time value={o.captured_at}/> · 业务对象 <code>{o.external_id}</code></p><code className="sub-id">观测 ID：{o.observation_id}</code>{o.source==="provider_ledger"&&<Ledger observation={o}/>}<Details title="脱敏请求 / 响应与来源" value={o.payload}/><p className="hash">证据 SHA-256 <code>{o.digest}</code></p></article>)}<Pager name="证据" {...d.evidence} onChange={setOffset}/></section>
+   <section className="panel"><h2>已观测的失败链</h2><Details title="产品与 provider 的关联来源" value={d.finding.failure_chain} open/><p className="hash">规则内容哈希 <code>{d.rules_hash}</code></p></section><section className="panel replay-callout"><div><h2>用同一输入验证修复</h2><p>在新的命名空间调用目标版本，重新采集独立支付证据。</p></div><button onClick={()=>navigate({project,run,view:"replay"})}>选择目标版本 →</button></section>
+ </>}</>;
+}

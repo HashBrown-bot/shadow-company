@@ -1,0 +1,20 @@
+{
+  "name": "enterprise-simulation-platform",
+  "version": "0.2.0",
+  "private": true,
+  "packageManager": "pnpm@11.19.0",
+  "engines": {
+    "node": ">=22.0.0 <27"
+  },
+  "scripts": {
+    "dev:web": "pnpm --filter @sim/web dev",
+    "build:web": "pnpm --filter @sim/web build",
+    "typecheck": "pnpm --filter @sim/web typecheck",
+    "db:local": "node scripts/local-postgres.mjs"
+  },
+  "devDependencies": {
+    "embedded-postgres": "18.4.0-beta.17",
+    "playwright": "1.62.1"
+  },
+  "license": "MIT"
+}

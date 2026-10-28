@@ -1,0 +1,34 @@
+name: Controlled local regression
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  controlled:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      NEXT_TELEMETRY_DISABLED: '1'
+      ACCEPTANCE_EVIDENCE_DIR: docs/evidence/ci-e9
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '24.19.0'
+      - name: Install locked tooling and dependencies
+        run: |
+          python -m pip install uv==0.12.23
+          npm install --global pnpm@11.19.0
+          uv sync --frozen
+          pnpm install --frozen-lockfile --store-dir .local/pnpm-store
+          pnpm exec playwright install --with-deps chrome
+      - name: Real PostgreSQL, controlled suite and strict CLI gate
+        run: .venv/bin/python -m scripts.verify_e9
+      # No schedule, exploration, deployment, credentials from staging, or publishing.

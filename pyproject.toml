@@ -1,0 +1,45 @@
+[build-system]
+requires = ["setuptools==80.9.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "enterprise-simulation-platform"
+version = "0.2.0"
+license = "MIT"
+license-files = ["LICENSE"]
+description = "Local refund and approval simulation test platform — E9 CLI and delivery"
+requires-python = ">=3.12,<3.14"
+dependencies = [
+  "fastapi==0.142.2",
+  "pydantic==2.13.5",
+  "uvicorn==0.54.0",
+  "psycopg[binary]==3.3.6",
+  "alembic==1.20.0",
+  "sqlalchemy==2.1.3",
+  "pyyaml==6.0.3",
+]
+
+[project.scripts]
+simctl = "packages.simctl.main:main"
+
+[dependency-groups]
+dev = ["pytest==9.1.1", "httpx==0.28.1", "ruff==0.16.10"]
+
+[tool.setuptools.packages.find]
+include = ["packages*", "services*", "adapters*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+markers = [
+  "protocol_double: offline model protocol doubles; never a real model service test",
+  "live_local: real local PUT/provider/Worker/PostgreSQL; no external model service",
+]
+
+[tool.ruff]
+line-length = 110
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]
+ignore = ["E501"]

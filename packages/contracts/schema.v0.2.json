@@ -1,0 +1,912 @@
+{
+  "$defs": {
+    "Actions": {
+      "additionalProperties": false,
+      "properties": {
+        "request_refund": {
+          "$ref": "#/$defs/RequestRefund"
+        },
+        "approve_refund": {
+          "$ref": "#/$defs/ApproveRefund"
+        },
+        "execute_refund": {
+          "$ref": "#/$defs/ExecuteRefund"
+        },
+        "read_refund": {
+          "$ref": "#/$defs/ReadRefund"
+        }
+      },
+      "required": [
+        "request_refund",
+        "approve_refund",
+        "execute_refund",
+        "read_refund"
+      ],
+      "title": "Actions",
+      "type": "object"
+    },
+    "Actor": {
+      "additionalProperties": false,
+      "properties": {
+        "strategy": {
+          "const": "rule",
+          "title": "Strategy",
+          "type": "string"
+        }
+      },
+      "required": [
+        "strategy"
+      ],
+      "title": "Actor",
+      "type": "object"
+    },
+    "Actors": {
+      "additionalProperties": false,
+      "properties": {
+        "customer": {
+          "$ref": "#/$defs/Actor"
+        },
+        "support": {
+          "$ref": "#/$defs/Actor"
+        },
+        "approver": {
+          "$ref": "#/$defs/Actor"
+        }
+      },
+      "required": [
+        "customer",
+        "support",
+        "approver"
+      ],
+      "title": "Actors",
+      "type": "object"
+    },
+    "Approval": {
+      "additionalProperties": false,
+      "properties": {
+        "version": {
+          "const": "1",
+          "title": "Version",
+          "type": "string"
+        },
+        "id": {
+          "const": "APPROVAL_001",
+          "title": "Id",
+          "type": "string"
+        },
+        "params": {
+          "$ref": "#/$defs/ApprovalParams"
+        }
+      },
+      "required": [
+        "version",
+        "id",
+        "params"
+      ],
+      "title": "Approval",
+      "type": "object"
+    },
+    "ApprovalParams": {
+      "additionalProperties": false,
+      "properties": {
+        "threshold_minor": {
+          "minimum": 0,
+          "title": "Threshold Minor",
+          "type": "integer"
+        },
+        "operator": {
+          "const": "gt",
+          "title": "Operator",
+          "type": "string"
+        }
+      },
+      "required": [
+        "threshold_minor",
+        "operator"
+      ],
+      "title": "ApprovalParams",
+      "type": "object"
+    },
+    "ApproveRefund": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "method": {
+          "const": "POST",
+          "title": "Method",
+          "type": "string"
+        },
+        "semantic": {
+          "const": "approve_snapshot",
+          "title": "Semantic",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "method",
+        "semantic"
+      ],
+      "title": "ApproveRefund",
+      "type": "object"
+    },
+    "Artifacts": {
+      "additionalProperties": false,
+      "properties": {
+        "redact_secrets": {
+          "title": "Redact Secrets",
+          "type": "boolean"
+        },
+        "trace_retention_days": {
+          "minimum": 0,
+          "title": "Trace Retention Days",
+          "type": "integer"
+        },
+        "raw_retention_days": {
+          "minimum": 0,
+          "title": "Raw Retention Days",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "redact_secrets",
+        "trace_retention_days",
+        "raw_retention_days"
+      ],
+      "title": "Artifacts",
+      "type": "object"
+    },
+    "Credentials": {
+      "additionalProperties": false,
+      "properties": {
+        "support": {
+          "pattern": "^secret://[A-Za-z0-9_/-]+$",
+          "title": "Support",
+          "type": "string"
+        },
+        "approver": {
+          "pattern": "^secret://[A-Za-z0-9_/-]+$",
+          "title": "Approver",
+          "type": "string"
+        }
+      },
+      "required": [
+        "support",
+        "approver"
+      ],
+      "title": "Credentials",
+      "type": "object"
+    },
+    "Environment": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "const": "refund_approval",
+          "title": "Id",
+          "type": "string"
+        },
+        "version": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$",
+          "title": "Version",
+          "type": "string"
+        },
+        "business_timezone": {
+          "title": "Business Timezone",
+          "type": "string"
+        },
+        "currency": {
+          "enum": [
+            "CNY",
+            "USD",
+            "EUR",
+            "JPY"
+          ],
+          "title": "Currency",
+          "type": "string"
+        },
+        "approval_threshold_minor": {
+          "minimum": 0,
+          "title": "Approval Threshold Minor",
+          "type": "integer"
+        },
+        "threshold_operator": {
+          "const": "gt",
+          "title": "Threshold Operator",
+          "type": "string"
+        },
+        "partial_refunds_allowed": {
+          "title": "Partial Refunds Allowed",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "version",
+        "business_timezone",
+        "currency",
+        "approval_threshold_minor",
+        "threshold_operator",
+        "partial_refunds_allowed"
+      ],
+      "title": "Environment",
+      "type": "object"
+    },
+    "ExecuteRefund": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "method": {
+          "const": "POST",
+          "title": "Method",
+          "type": "string"
+        },
+        "semantic": {
+          "const": "request_execution",
+          "title": "Semantic",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "method",
+        "semantic"
+      ],
+      "title": "ExecuteRefund",
+      "type": "object"
+    },
+    "Fault": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "boundary": {
+          "enum": [
+            "provider_response",
+            "provider_connection",
+            "provider_webhook",
+            "provider_request",
+            "actor_availability"
+          ],
+          "title": "Boundary",
+          "type": "string"
+        },
+        "match": {
+          "$ref": "#/$defs/FaultMatch"
+        },
+        "behavior": {
+          "enum": [
+            "commit_then_timeout",
+            "connection_failure",
+            "webhook_duplicate",
+            "webhook_reorder",
+            "rate_limit",
+            "approver_offline"
+          ],
+          "title": "Behavior",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "boundary",
+        "match",
+        "behavior"
+      ],
+      "title": "Fault",
+      "type": "object"
+    },
+    "FaultMatch": {
+      "additionalProperties": false,
+      "properties": {
+        "scenario_id": {
+          "pattern": "^S(0[1-9]|1[0-9]|20)$",
+          "title": "Scenario Id",
+          "type": "string"
+        },
+        "attempt": {
+          "exclusiveMinimum": 0,
+          "title": "Attempt",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "scenario_id",
+        "attempt"
+      ],
+      "title": "FaultMatch",
+      "type": "object"
+    },
+    "Gate": {
+      "additionalProperties": false,
+      "properties": {
+        "fail_on_severity": {
+          "items": {
+            "enum": [
+              "critical",
+              "high",
+              "medium",
+              "low"
+            ],
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Fail On Severity",
+          "type": "array"
+        },
+        "required_checks": {
+          "items": {
+            "enum": [
+              "REFUND_001",
+              "REFUND_002",
+              "APPROVAL_001",
+              "STATE_001",
+              "TIME_001"
+            ],
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Required Checks",
+          "type": "array"
+        },
+        "inconclusive": {
+          "const": "block",
+          "title": "Inconclusive",
+          "type": "string"
+        }
+      },
+      "required": [
+        "fail_on_severity",
+        "required_checks",
+        "inconclusive"
+      ],
+      "title": "Gate",
+      "type": "object"
+    },
+    "LLM": {
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "max_calls": {
+          "minimum": 0,
+          "title": "Max Calls",
+          "type": "integer"
+        },
+        "max_tokens": {
+          "minimum": 0,
+          "title": "Max Tokens",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "enabled",
+        "max_calls",
+        "max_tokens"
+      ],
+      "title": "LLM",
+      "type": "object"
+    },
+    "Model": {
+      "additionalProperties": false,
+      "properties": {},
+      "title": "Model",
+      "type": "object"
+    },
+    "ObservationSources": {
+      "additionalProperties": false,
+      "properties": {
+        "product_query": {
+          "const": "required",
+          "title": "Product Query",
+          "type": "string"
+        },
+        "provider_ledger": {
+          "const": "required",
+          "title": "Provider Ledger",
+          "type": "string"
+        },
+        "webhook": {
+          "const": "required",
+          "title": "Webhook",
+          "type": "string"
+        }
+      },
+      "required": [
+        "product_query",
+        "provider_ledger",
+        "webhook"
+      ],
+      "title": "ObservationSources",
+      "type": "object"
+    },
+    "Product": {
+      "additionalProperties": false,
+      "properties": {
+        "base_url": {
+          "title": "Base Url",
+          "type": "string"
+        },
+        "id": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "version": {
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$",
+          "title": "Version",
+          "type": "string"
+        },
+        "adapter": {
+          "enum": [
+            "http_refund_v1",
+            "rpc_credit_v1"
+          ],
+          "title": "Adapter",
+          "type": "string"
+        },
+        "responsibility": {
+          "const": "approval_and_execution",
+          "title": "Responsibility",
+          "type": "string"
+        },
+        "credentials": {
+          "$ref": "#/$defs/Credentials"
+        },
+        "actions": {
+          "$ref": "#/$defs/Actions"
+        },
+        "observations": {
+          "$ref": "#/$defs/ObservationSources"
+        },
+        "reset": {
+          "$ref": "#/$defs/Reset"
+        },
+        "clock_support": {
+          "items": {
+            "enum": [
+              "realtime",
+              "event_compressed"
+            ],
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Clock Support",
+          "type": "array"
+        }
+      },
+      "required": [
+        "base_url",
+        "id",
+        "version",
+        "adapter",
+        "responsibility",
+        "credentials",
+        "actions",
+        "observations",
+        "reset",
+        "clock_support"
+      ],
+      "title": "Product",
+      "type": "object"
+    },
+    "Provider": {
+      "additionalProperties": false,
+      "properties": {
+        "base_url": {
+          "title": "Base Url",
+          "type": "string"
+        },
+        "adapter": {
+          "const": "payment_stub_v1",
+          "title": "Adapter",
+          "type": "string"
+        },
+        "ledger_path": {
+          "title": "Ledger Path",
+          "type": "string"
+        },
+        "reset_path": {
+          "title": "Reset Path",
+          "type": "string"
+        },
+        "idempotency_scope": {
+          "const": "tenant_and_idempotency_key",
+          "title": "Idempotency Scope",
+          "type": "string"
+        }
+      },
+      "required": [
+        "base_url",
+        "adapter",
+        "ledger_path",
+        "reset_path",
+        "idempotency_scope"
+      ],
+      "title": "Provider",
+      "type": "object"
+    },
+    "ReadRefund": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "method": {
+          "const": "GET",
+          "title": "Method",
+          "type": "string"
+        },
+        "semantic": {
+          "const": "observe_application",
+          "title": "Semantic",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "method",
+        "semantic"
+      ],
+      "title": "ReadRefund",
+      "type": "object"
+    },
+    "RefundBalance": {
+      "additionalProperties": false,
+      "properties": {
+        "version": {
+          "const": "1",
+          "title": "Version",
+          "type": "string"
+        },
+        "id": {
+          "const": "REFUND_002",
+          "title": "Id",
+          "type": "string"
+        },
+        "params": {
+          "$ref": "#/$defs/RefundBalanceParams"
+        }
+      },
+      "required": [
+        "version",
+        "id",
+        "params"
+      ],
+      "title": "RefundBalance",
+      "type": "object"
+    },
+    "RefundBalanceParams": {
+      "additionalProperties": false,
+      "properties": {
+        "currency": {
+          "enum": [
+            "CNY",
+            "USD",
+            "EUR",
+            "JPY"
+          ],
+          "title": "Currency",
+          "type": "string"
+        }
+      },
+      "required": [
+        "currency"
+      ],
+      "title": "RefundBalanceParams",
+      "type": "object"
+    },
+    "RefundOnce": {
+      "additionalProperties": false,
+      "properties": {
+        "version": {
+          "const": "1",
+          "title": "Version",
+          "type": "string"
+        },
+        "id": {
+          "const": "REFUND_001",
+          "title": "Id",
+          "type": "string"
+        },
+        "params": {
+          "$ref": "#/$defs/RefundOnceParams"
+        }
+      },
+      "required": [
+        "version",
+        "id",
+        "params"
+      ],
+      "title": "RefundOnce",
+      "type": "object"
+    },
+    "RefundOnceParams": {
+      "additionalProperties": false,
+      "properties": {
+        "max_success_per_command": {
+          "maximum": 1,
+          "minimum": 1,
+          "title": "Max Success Per Command",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "max_success_per_command"
+      ],
+      "title": "RefundOnceParams",
+      "type": "object"
+    },
+    "RequestRefund": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "title": "Path",
+          "type": "string"
+        },
+        "method": {
+          "const": "POST",
+          "title": "Method",
+          "type": "string"
+        },
+        "semantic": {
+          "const": "create_application",
+          "title": "Semantic",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "method",
+        "semantic"
+      ],
+      "title": "RequestRefund",
+      "type": "object"
+    },
+    "Reset": {
+      "additionalProperties": false,
+      "properties": {
+        "strategy": {
+          "const": "run_namespace",
+          "title": "Strategy",
+          "type": "string"
+        },
+        "endpoint": {
+          "title": "Endpoint",
+          "type": "string"
+        },
+        "scope": {
+          "const": "run_id",
+          "title": "Scope",
+          "type": "string"
+        }
+      },
+      "required": [
+        "strategy",
+        "endpoint",
+        "scope"
+      ],
+      "title": "Reset",
+      "type": "object"
+    },
+    "Runtime": {
+      "additionalProperties": false,
+      "properties": {
+        "seed": {
+          "maximum": 9223372036854775807,
+          "minimum": 0,
+          "title": "Seed",
+          "type": "integer"
+        },
+        "time_mode": {
+          "enum": [
+            "realtime",
+            "event_compressed"
+          ],
+          "title": "Time Mode",
+          "type": "string"
+        },
+        "max_events": {
+          "exclusiveMinimum": 0,
+          "title": "Max Events",
+          "type": "integer"
+        },
+        "max_wall_seconds": {
+          "exclusiveMinimum": 0,
+          "title": "Max Wall Seconds",
+          "type": "integer"
+        },
+        "max_concurrency": {
+          "exclusiveMinimum": 0,
+          "maximum": 64,
+          "title": "Max Concurrency",
+          "type": "integer"
+        },
+        "max_action_retries": {
+          "minimum": 0,
+          "title": "Max Action Retries",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "seed",
+        "time_mode",
+        "max_events",
+        "max_wall_seconds",
+        "max_concurrency",
+        "max_action_retries"
+      ],
+      "title": "Runtime",
+      "type": "object"
+    },
+    "State": {
+      "additionalProperties": false,
+      "properties": {
+        "version": {
+          "const": "1",
+          "title": "Version",
+          "type": "string"
+        },
+        "id": {
+          "const": "STATE_001",
+          "title": "Id",
+          "type": "string"
+        },
+        "params": {
+          "$ref": "#/$defs/Model"
+        }
+      },
+      "required": [
+        "version",
+        "id"
+      ],
+      "title": "State",
+      "type": "object"
+    },
+    "Time": {
+      "additionalProperties": false,
+      "properties": {
+        "version": {
+          "const": "1",
+          "title": "Version",
+          "type": "string"
+        },
+        "id": {
+          "const": "TIME_001",
+          "title": "Id",
+          "type": "string"
+        },
+        "params": {
+          "$ref": "#/$defs/TimeParams"
+        }
+      },
+      "required": [
+        "version",
+        "id",
+        "params"
+      ],
+      "title": "Time",
+      "type": "object"
+    },
+    "TimeParams": {
+      "additionalProperties": false,
+      "properties": {
+        "observation_wall_seconds": {
+          "exclusiveMinimum": 0,
+          "title": "Observation Wall Seconds",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "observation_wall_seconds"
+      ],
+      "title": "TimeParams",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "0.2",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "environment": {
+      "$ref": "#/$defs/Environment"
+    },
+    "product": {
+      "$ref": "#/$defs/Product"
+    },
+    "provider": {
+      "$ref": "#/$defs/Provider"
+    },
+    "runtime": {
+      "$ref": "#/$defs/Runtime"
+    },
+    "actors": {
+      "$ref": "#/$defs/Actors"
+    },
+    "llm": {
+      "$ref": "#/$defs/LLM"
+    },
+    "rules": {
+      "items": {
+        "discriminator": {
+          "mapping": {
+            "APPROVAL_001": "#/$defs/Approval",
+            "REFUND_001": "#/$defs/RefundOnce",
+            "REFUND_002": "#/$defs/RefundBalance",
+            "STATE_001": "#/$defs/State",
+            "TIME_001": "#/$defs/Time"
+          },
+          "propertyName": "id"
+        },
+        "oneOf": [
+          {
+            "$ref": "#/$defs/RefundOnce"
+          },
+          {
+            "$ref": "#/$defs/RefundBalance"
+          },
+          {
+            "$ref": "#/$defs/Approval"
+          },
+          {
+            "$ref": "#/$defs/State"
+          },
+          {
+            "$ref": "#/$defs/Time"
+          }
+        ]
+      },
+      "minItems": 1,
+      "title": "Rules",
+      "type": "array"
+    },
+    "faults": {
+      "items": {
+        "$ref": "#/$defs/Fault"
+      },
+      "title": "Faults",
+      "type": "array"
+    },
+    "suite": {
+      "const": "refund_core_20",
+      "title": "Suite",
+      "type": "string"
+    },
+    "gate": {
+      "$ref": "#/$defs/Gate"
+    },
+    "artifacts": {
+      "$ref": "#/$defs/Artifacts"
+    }
+  },
+  "required": [
+    "schema_version",
+    "environment",
+    "product",
+    "provider",
+    "runtime",
+    "actors",
+    "llm",
+    "rules",
+    "faults",
+    "suite",
+    "gate",
+    "artifacts"
+  ],
+  "title": "Configuration",
+  "type": "object"
+}
